@@ -38,4 +38,6 @@ query_string query
 simple_query_string
 :A simpler, more robust version of the query_string syntax suitable for exposing directly to users.
 
-![Lucene Architecture]({{ site.url }}images/2016/01/lucene_pic.jpeg)
+#Lucene Architecture
+
+![Lucene Architecture]({{ site.url }}/images/2016/01/lucene_pic.jpeg)
