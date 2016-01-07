@@ -5,7 +5,9 @@ date: "2016-01-06 14:17"
 ---
 
 
-Elasticsearch provides a full Java query dsl in a similar manner to the REST Query DSL. The factory for query builders is QueryBuilders. Once your query is ready, you can use the Search API.
+Elasticsearch provides a full Java query dsl in a similar manner to the REST Query DSL. The factory for query builders is QueryBuilders. Once your query is ready, you can use the Search API. Following are taken from [official documenation][73babb6a] for Elasticsearch version 2.1.
+
+  [73babb6a]: https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/java-query-dsl.html "es documentation 2.1"
 
 To use QueryBuilders just import them in your class
 
@@ -60,7 +62,3 @@ QueryBuilder qb = queryStringQuery("+kimchy -elasticsearch"); //text
 {% highlight java %}
 QueryBuilder qb = simpleQueryStringQuery("+kimchy -elasticsearch"); //text
 {% endhighlight %}
-
-#Lucene Architecture
-
-![Lucene Architecture]({{ site.url }}/images/2016/01/lucene_pic.jpeg)
