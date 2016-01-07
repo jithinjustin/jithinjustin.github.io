@@ -80,7 +80,7 @@ td{
 </style>
 
 <table class="table">
-<tr><th style="width:25%">Transformation</th><th>Meaning</th></tr>
+<tr><th >Transformation</th><th>Meaning</th></tr>
 <tr>
   <td> <b>map</b>(<i>func</i>) </td>
   <td> Return a new distributed dataset formed by passing each element of the source through a function <i>func</i>. </td>
