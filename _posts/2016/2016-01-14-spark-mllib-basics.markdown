@@ -228,6 +228,8 @@ Model 2 was fit using parameters: {
 	logreg_a16a39642a6b-tol: 1.0E-6,
 	logreg_a16a39642a6b-weightCol:
 }
+
+features         label   predicted vector
 ([-1.0,1.5,1.3], 1.0) -> prob=[0.05707304171033984,0.9429269582896601], prediction=1.0
 ([3.0,2.0,-0.1], 0.0) -> prob=[0.9238522311704088,0.0761477688295912], prediction=0.0
 ([0.0,2.2,-1.5], 1.0) -> prob=[0.10972776114779145,0.8902722388522085], prediction=1.0
