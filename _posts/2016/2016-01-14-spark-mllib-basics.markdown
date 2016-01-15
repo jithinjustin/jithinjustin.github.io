@@ -235,3 +235,162 @@ features         label   predicted vector
 ([0.0,2.2,-1.5], 1.0) -> prob=[0.10972776114779145,0.8902722388522085], prediction=1.0
 
 </pre>
+
+
+
+## Pipeline example
+
+A Pipeline is specified as a sequence of stages, and each stage is either a Transformer or an Estimator. These stages are run in order, and the input DataFrame is transformed as it passes through each stage. For Transformer stages, the transform() method is called on the DataFrame. For Estimator stages, the fit() method is called to produce a Transformer (which becomes part of the PipelineModel, or fitted Pipeline), and that Transformer’s transform() method is called on the DataFrame.
+{% highlight java %}
+import java.io.Serializable;
+
+//Labeled and unlabeled instance types.
+//Spark SQL can infer schema from Java Beans.
+public class Document implements Serializable {
+	private long id;
+	private String text;
+
+	public Document(long id, String text) {
+		this.id = id;
+		this.text = text;
+	}
+
+	public long getId() {
+		return this.id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
+
+	public String getText() {
+		return this.text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
+	}
+}
+
+
+import java.io.Serializable;
+
+public class LabeledDocument extends Document implements Serializable {
+	private double label;
+
+	public LabeledDocument(long id, String text, double label) {
+		super(id, text);
+		this.label = label;
+	}
+
+	public double getLabel() {
+		return this.label;
+	}
+
+	public void setLabel(double label) {
+		this.label = label;
+	}
+}
+
+
+import java.util.Arrays;
+
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.rdd.RDD;
+import org.apache.spark.sql.SQLContext;
+import org.apache.spark.ml.Pipeline;
+import org.apache.spark.ml.PipelineModel;
+import org.apache.spark.ml.PipelineStage;
+import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.feature.HashingTF;
+import org.apache.spark.ml.feature.Tokenizer;
+import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Row;
+
+public class PipelineTest {
+
+	public static void printDataFrameasJson(RDD<String> jsonRDD) {
+
+		String[] jarray = (String[]) jsonRDD.collect();
+		for (String json : jarray) {
+			System.out.println(json);
+		}
+
+	}
+
+	public static void main(String args[])
+
+	{
+		SparkConf conf = new SparkConf().setAppName("JavaTokenizerExample")
+				.setMaster("local");
+		JavaSparkContext jsc = new JavaSparkContext(conf);
+		SQLContext sqlContext = new SQLContext(jsc);
+
+		// Prepare training documents, which are labeled.
+		DataFrame training = sqlContext.createDataFrame(Arrays.asList(
+				new LabeledDocument(0L, "a b c d e spark", 1.0),
+				new LabeledDocument(1L, "b d", 0.0), new LabeledDocument(2L,
+						"spark f g h", 1.0), new LabeledDocument(3L,
+						"hadoop mapreduce", 0.0)), LabeledDocument.class);
+
+		// Configure an ML pipeline, which consists of three stages: tokenizer,
+		// hashingTF, and lr.
+		Tokenizer tokenizer = new Tokenizer().setInputCol("text").setOutputCol(
+				"words");
+		HashingTF hashingTF = new HashingTF().setNumFeatures(1000)
+				.setInputCol(tokenizer.getOutputCol()).setOutputCol("features");
+		LogisticRegression lr = new LogisticRegression().setMaxIter(10)
+				.setRegParam(0.01);
+		Pipeline pipeline = new Pipeline().setStages(new PipelineStage[] {
+				tokenizer, hashingTF, lr });
+
+		DataFrame tokenDataFrame = tokenizer.transform(training);
+		DataFrame hashingDataFrame = hashingTF.transform(tokenDataFrame);
+
+		printDataFrameasJson(tokenDataFrame.toJSON());
+		printDataFrameasJson(hashingDataFrame.toJSON());
+
+		// Fit the pipeline to training documents.
+		PipelineModel model = pipeline.fit(training);
+
+		// Prepare test documents, which are unlabeled.
+		DataFrame test = sqlContext.createDataFrame(Arrays.asList(new Document(
+				4L, "spark i j k"), new Document(5L, "l m n"), new Document(6L,
+				"mapreduce spark"), new Document(7L, "apache hadoop")),
+				Document.class);
+
+		// Make predictions on test documents.
+		DataFrame predictions = model.transform(test);
+		for (Row r : predictions.select("id", "text", "probability",
+				"prediction").collect()) {
+			System.out.println("(" + r.get(0) + ", " + r.get(1) + ") --> prob="
+					+ r.get(2) + ", prediction=" + r.get(3));
+		}
+
+	}
+
+}
+{% endhighlight %}
+
+ **Sample output**
+
+<pre>
+Tokenizer
+{"id":0,"label":1.0,"text":"a b c d e spark","words":["a","b","c","d","e","spark"]}
+{"id":1,"label":0.0,"text":"b d","words":["b","d"]}
+{"id":2,"label":1.0,"text":"spark f g h","words":["spark","f","g","h"]}
+{"id":3,"label":0.0,"text":"hadoop mapreduce","words":["hadoop","mapreduce"]}
+
+HashingTF
+{"id":0,"label":1.0,"text":"a b c d e spark","words":["a","b","c","d","e","spark"],"features":{"type":0,"size":1000,"indices":[97,98,99,100,101,365],"values":[1.0,1.0,1.0,1.0,1.0,1.0]}}
+{"id":1,"label":0.0,"text":"b d","words":["b","d"],"features":{"type":0,"size":1000,"indices":[98,100],"values":[1.0,1.0]}}
+{"id":2,"label":1.0,"text":"spark f g h","words":["spark","f","g","h"],"features":{"type":0,"size":1000,"indices":[102,103,104,365],"values":[1.0,1.0,1.0,1.0]}}
+{"id":3,"label":0.0,"text":"hadoop mapreduce","words":["hadoop","mapreduce"],"features":{"type":0,"size":1000,"indices":[269,810],"values":[1.0,1.0]}}
+
+"id", "text",             "probability",                          "prediction"
+(4, spark i j k) --> prob=[0.5406433544851431,0.45935664551485683], prediction=0.0
+(5, l m n) --> prob=[0.9334382627383263,0.06656173726167372], prediction=0.0
+(6, mapreduce spark) --> prob=[0.7799076868203894,0.2200923131796106], prediction=0.0
+(7, apache hadoop) --> prob=[0.9768636139518304,0.023136386048169637], prediction=0.0
+</pre>
