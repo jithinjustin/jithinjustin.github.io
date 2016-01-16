@@ -1,8 +1,9 @@
 ---
 layout: post
-title: "Spark MLlib Pipeline API"
-date: "2016-01-14 12:10"
+title: "Spark Mllib Pipeline"
+date: "2016-01-16 19:29"
 ---
+
 MLlib is Spark’s machine learning (ML) library. Its goal is to make practical machine learning scalable and easy. It consists of common learning algorithms and utilities, including classification, regression, clustering, collaborative filtering, dimensionality reduction, as well as lower-level optimization primitives and higher-level pipeline APIs.
 
 It divides into two packages:
