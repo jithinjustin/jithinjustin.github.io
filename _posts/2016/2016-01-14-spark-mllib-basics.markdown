@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Spark MLlib Basics"
+title: "Spark MLlib Pipeline API"
 date: "2016-01-14 12:10"
 ---
 MLlib is Spark’s machine learning (ML) library. Its goal is to make practical machine learning scalable and easy. It consists of common learning algorithms and utilities, including classification, regression, clustering, collaborative filtering, dimensionality reduction, as well as lower-level optimization primitives and higher-level pipeline APIs.
@@ -11,11 +11,25 @@ It divides into two packages:
 * <code>spark.ml</code> provides higher-level API built on top of DataFrames for constructing ML pipelines.
 
 
+
 Using <code>spark.ml</code> is recommended because with DataFrames the API is more versatile and flexible.
 
-## MLlib datatypes:
+**Table of Contents**
+
+- [MLlib datatypes ](#mllib_datatype)
+- [Main concepts in Pipeline : Transformers, Estimators and Parameters](#pipeline)
+- [Pipeline Example](#pipelineexample)
+- [Model Selection via Crossvalidation](#crossvalidation)
+
+
+
+## <a name="mllib_datatype"></a> MLlib datatypes
+
+---
+<br>
 
 # Local vector
+
 
 <p>A local vector has integer-typed and 0-based indices and double-typed values, stored on a single
 machine.  MLlib supports two types of local vectors: dense and sparse.  A dense vector is backed by
@@ -53,7 +67,13 @@ LabeledPoint pos = new LabeledPoint(1.0, Vectors.dense(1.0, 0.0, 3.0));
 LabeledPoint neg = new LabeledPoint(0.0, Vectors.sparse(3, new int[] {0, 2}, new double[] {1.0, 3.0}));
 {% endhighlight %}
 
-# Main concepts in Pipelines
+<br>
+
+
+## <a name="pipeline"></a> Main concepts in Pipelines
+
+---
+<br>
 
 <p>Spark ML standardizes APIs for machine learning algorithms to make it easier to combine multiple
 algorithms into a single pipeline, or workflow.
@@ -74,8 +94,6 @@ Sample code representing Estimators, Transformers and Parameters.
 </p>
 
 {% highlight java %}
-
-package com.quixey.sparkpipeline;
 
 import java.util.Arrays;
 import java.util.List;
@@ -236,9 +254,11 @@ features         label   predicted vector
 
 </pre>
 
+<br>
 
-
-## Pipeline example
+## <a name="pipelineexample"></a> Pipeline example
+---
+<br>
 
 A Pipeline is specified as a sequence of stages, and each stage is either a Transformer or an Estimator. These stages are run in order, and the input DataFrame is transformed as it passes through each stage. For Transformer stages, the transform() method is called on the DataFrame. For Estimator stages, the fit() method is called to produce a Transformer (which becomes part of the PipelineModel, or fitted Pipeline), and that Transformer’s transform() method is called on the DataFrame.
 {% highlight java %}
@@ -395,11 +415,16 @@ HashingTF
 (7, apache hadoop) --> prob=[0.9768636139518304,0.023136386048169637], prediction=0.0
 </pre>
 
+<br>
 
-## Example: model selection via cross-validation
+## <a name="crossvalidation"></a> Model selection via cross-validation
+
+---
+<br>
+
 An important task in ML is model selection, or using data to find the best model or parameters for a given task. This is also called tuning. Pipelines facilitate model selection by making it easy to tune an entire Pipeline at once, rather than tuning each element in the Pipeline separately.
 
-Currently, spark.ml supports model selection using the CrossValidator class, which takes an Estimator, a set of ParamMaps, and an Evaluator. CrossValidator begins by splitting the dataset into a set of folds which are used as separate training and test datasets; e.g., with k=3k=3 folds, CrossValidator will generate 3 (training, test) dataset pairs, each of which uses 2/3 of the data for training and 1/3 for testing. CrossValidator iterates through the set of ParamMaps. For each ParamMap, it trains the given Estimator and evaluates it using the given Evaluator.
+Currently, spark.ml supports model selection using the CrossValidator class, which takes an Estimator, a set of ParamMaps, and an Evaluator. CrossValidator begins by splitting the dataset into a set of folds which are used as separate training and test datasets; e.g., with k=3 folds, CrossValidator will generate 3 (training, test) dataset pairs, each of which uses 2/3 of the data for training and 1/3 for testing. CrossValidator iterates through the set of ParamMaps. For each ParamMap, it trains the given Estimator and evaluates it using the given Evaluator.
 
 The Evaluator can be a RegressionEvaluator for regression problems, a BinaryClassificationEvaluator for binary data, or a MultiClassClassificationEvaluator for multiclass problems. The default metric used to choose the best ParamMap can be overriden by the setMetric method in each of these evaluators.
 
@@ -517,3 +542,10 @@ public class PipelinewithCrossvalidation {
 (6, mapreduce spark) --> prob=[0.4248344997494982,0.5751655002505017], prediction=1.0
 (7, apache hadoop) --> prob=[0.6899594200690093,0.3100405799309907], prediction=0.0
 </pre>
+
+
+# Model selection via train validation split
+
+In addition to CrossValidator Spark also offers TrainValidationSplit for hyper-parameter tuning. TrainValidationSplit only evaluates each combination of parameters once as opposed to k times in case of CrossValidator. It is therefore less expensive, but will not produce as reliable results when the training dataset is not sufficiently large.
+
+TrainValidationSplit takes an Estimator, a set of ParamMaps provided in the estimatorParamMaps parameter, and an Evaluator. It begins by splitting the dataset into two parts using trainRatio parameter which are used as separate training and test datasets. For example with trainRatio=0.75 (default), TrainValidationSplit will generate a training and test dataset pair where 75% of the data is used for training and 25% for validation. Similar to CrossValidator, TrainValidationSplit also iterates through the set of ParamMaps. For each combination of parameters, it trains the given Estimator and evaluates it using the given Evaluator. The ParamMap which produces the best evaluation metric is selected as the best option. TrainValidationSplit finally fits the Estimator using the best ParamMap and the entire dataset.
