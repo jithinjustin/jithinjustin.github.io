@@ -8,4 +8,4 @@ Docker is an open source platform which can be used to package, distribute and r
 
 Docker provides some convenient tools to build Docker images in a simple and efficient way. A Docker container on the other hand is a kind of light weight virtual machine with considerably smaller memory and disk space footprint than a full blown virtual machine.
 
-![Docker Stack]({{site.url}}images/2016/06/docker.png)
+![Docker Stack]({{site.url}}/images/2016/06/docker.png)
