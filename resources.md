@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Resources
-permalink: /resources/
+title: Categories
+permalink: /categories/
 resource: false
 ---
 
