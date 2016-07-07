@@ -52,8 +52,6 @@ pre.command-line {
 <li><a href="#step-3-optional-generate-jekyll-site-files">Step 3 (optional): Generate Jekyll site files</a></li>
 <li><a href="#step-4-build-your-local-jekyll-site">Step 4: Build your local Jekyll site</a></li>
 <li><a href="#keeping-your-site-up-to-date-with-the-github-pages-gem">Keeping your site up to date with the GitHub Pages gem</a></li>
-<li><a href="#next-steps-configuring-jekyll">Next steps: Configuring Jekyll</a></li>
-<li><a href="#further-reading">Further reading</a></li>
 </ul>
 
 <div class="platform-windows">
